@@ -1,5 +1,8 @@
 /* See LICENSE file for copyright and license details. */
 
+#include "fibonacci.c"
+#include <X11/XF86keysym.h>
+
 /* appearance */
 static const unsigned int borderpx  = 2;        /* border pixel of windows */
 static const unsigned int snap      = 0;       /* snap pixel */
@@ -18,8 +21,8 @@ static const char *colors[][3]      = {
 	[SchemeSel]  = { col_gray4, col_cyan,  col_cyan  },
 };
 
-static const unsigned int gappx = 8;
-static const unsigned int gappi = 8;
+const unsigned int gappx = 10;
+const unsigned int gappi = 10;
 
 /* tagging */
 static const char *tags[] = { "1", "2", "3", "4", "5", "6", "7", "8", "9" };
@@ -30,8 +33,7 @@ static const Rule rules[] = {
 	 *	WM_NAME(STRING) = title
 	 */
 	/* class      instance    title       tags mask     isfloating   monitor */
-	{ "Gimp",     NULL,       NULL,       0,            1,           -1 },
-	//{ "Firefox",  NULL,       NULL,       1 << 8,       0,           -1 },
+	{ "NULL",	NULL,	   NULL,	0,  		0,	   -1 },
 };
 
 /* layout(s) */
@@ -43,9 +45,10 @@ static const int refreshrate = 120;  /* refresh rate (per second) for client mov
 
 static const Layout layouts[] = {
 	/* symbol     arrange function */
-	{ "[]=",      tile },    /* first entry is default */
+	{ "(@)",      dwindle },    /* first entry is default */
 	{ "><>",      NULL },    /* no layout function means floating behavior */
 	{ "[M]",      monocle },
+	{ "[]=",      tile },
 };
 
 /* key definitions */
@@ -66,6 +69,10 @@ static const char *term[]  = { "alacritty", NULL };
 static const char *web[] = { "brave", NULL };
 static const char *filemanager[] = { "thunar", NULL };
 static const char *rofi[] = { "rofi", "-show", "drun", NULL };
+static const char *kbd[] = { "sh", "-c", "xkb-switch -n", NULL };
+
+static const char *volup[] = { "sh", "-c", "pactl set-sink-volume @DEFAULT_SINK@ +2%", NULL };
+static const char *voldown[] = { "sh", "-c", "pactl set-sink-volume @DEFAULT_SINK@ -2%", NULL };
 
 static const Key keys[] = {
 	/* modifier                     key        function        argument */
@@ -75,10 +82,15 @@ static const Key keys[] = {
 	{ MODKEY,			XK_Tab,	   spawn,	   {.v = rofi} },
 	{ MODKEY,			XK_e,	   spawn,	   {.v = filemanager} },
 
+	{ MODKEY,			XK_k,	   spawn,          {.v = kbd} },
 	{ MODKEY|ShiftMask,             XK_Return, zoom,           {0} },
 	{ MODKEY|ShiftMask,             XK_Tab,    view,           {0} },
 	{ MODKEY,	                XK_q,      killclient,     {0} },
-	{ MODKEY,             		XK_f,	   togglefloating, {0} },
+	{ MODKEY,             		XK_d,	   togglefloating, {0} },
+	{ MODKEY,			XK_f,	   togglefullscr,  {0} },
+	{ MODKEY,			XK_p,	   cyclelayout,    {.i = +1} },
+	{ MODKEY,			XK_Right,  focusstack,	   {.i = +1} },
+	{ MODKEY,			XK_Left,   focusstack,     {.i = -1} },
 	TAGKEYS(                        XK_1,                      0)
 	TAGKEYS(                        XK_2,                      1)
 	TAGKEYS(                        XK_3,                      2)
@@ -89,6 +101,8 @@ static const Key keys[] = {
 	TAGKEYS(                        XK_8,                      7)
 	TAGKEYS(                        XK_9,                      8)
 	{ MODKEY|ShiftMask,             XK_q,      quit,           {0} },
+	{ 0,				XF86XK_AudioRaiseVolume, spawn, {.v = volup} },
+	{ 0,				XF86XK_AudioLowerVolume, spawn, {.v = voldown} },
 };
 
 /* button definitions */
