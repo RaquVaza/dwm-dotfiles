@@ -217,6 +217,7 @@ static void tagmon(const Arg *arg);
 static void tile(Monitor *m);
 static void togglebar(const Arg *arg);
 static void togglefloating(const Arg *arg);
+static void togglefullscr(const Arg *arg);
 static void toggletag(const Arg *arg);
 static void toggleview(const Arg *arg);
 static void unfocus(Client *c, int setfocus);
@@ -684,7 +685,7 @@ createmon(void)
 
 void
 cyclelayout(const Arg *arg) {
-	Layout *l;
+/*	Layout *l;
 	for(l = (Layout *)layouts; l != selmon->lt[selmon->sellt]; l++);
 	if(arg->i > 0) {
 		if(l->symbol && (l + 1)->symbol)
@@ -696,7 +697,23 @@ cyclelayout(const Arg *arg) {
 			setlayout(&((Arg) { .v = (l - 1) }));
 		else
 			setlayout(&((Arg) { .v = &layouts[LENGTH(layouts) - 2] }));
-	}
+	} */
+	Layout *l;
+    		for(l = (Layout *)layouts; l != layouts + LENGTH(layouts) - 1; l++)
+        		if(selmon->lt[selmon->sellt] == l)
+            	break;
+    		if(arg->i > 0) {
+        		if(l != &layouts[LENGTH(layouts) - 1] && (l + 1)->symbol)
+            			setlayout(&((Arg) { .v = (l + 1) }));
+        		else
+            			setlayout(&((Arg) { .v = layouts }));  // wrap на начало
+    			} else {
+        			if(l != layouts)
+            			setlayout(&((Arg) { .v = (l - 1) }));
+       			 else
+            			setlayout(&((Arg) { .v = &layouts[LENGTH(layouts) - 1] }));  // wrap на конец
+    }
+
 }
 
 void
@@ -1873,6 +1890,13 @@ togglefloating(const Arg *arg)
 		resize(selmon->sel, selmon->sel->x, selmon->sel->y,
 			selmon->sel->w, selmon->sel->h, 0);
 	arrange(selmon);
+}
+
+void
+togglefullscr(const Arg *arg)
+{
+  if(selmon->sel)
+    setfullscreen(selmon->sel, !selmon->sel->isfullscreen);
 }
 
 void

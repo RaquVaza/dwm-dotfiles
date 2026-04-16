@@ -1,6 +1,7 @@
 /* See LICENSE file for copyright and license details. */
 
 #include "fibonacci.c"
+#include "movestack.c"
 #include <X11/XF86keysym.h>
 
 /* appearance */
@@ -70,6 +71,7 @@ static const char *web[] = { "brave", NULL };
 static const char *filemanager[] = { "thunar", NULL };
 static const char *rofi[] = { "rofi", "-show", "drun", NULL };
 static const char *kbd[] = { "sh", "-c", "xkb-switch -n", NULL };
+static const char *scrsh[] = { "sh", "-c", "scrot ~/Pictures/Screenshots/%b%d-%H-%m-%S.png --select --freeze", NULL };
 
 static const char *volup[] = { "sh", "-c", "pactl set-sink-volume @DEFAULT_SINK@ +2%", NULL };
 static const char *voldown[] = { "sh", "-c", "pactl set-sink-volume @DEFAULT_SINK@ -2%", NULL };
@@ -81,7 +83,7 @@ static const Key keys[] = {
 	{ MODKEY,                       XK_b,      spawn,          {.v = web} },
 	{ MODKEY,			XK_Tab,	   spawn,	   {.v = rofi} },
 	{ MODKEY,			XK_e,	   spawn,	   {.v = filemanager} },
-
+	{ MODKEY|ShiftMask,		XK_s,	   spawn,	   {.v = scrsh} },
 	{ MODKEY,			XK_k,	   spawn,          {.v = kbd} },
 	{ MODKEY|ShiftMask,             XK_Return, zoom,           {0} },
 	{ MODKEY|ShiftMask,             XK_Tab,    view,           {0} },
@@ -91,6 +93,8 @@ static const Key keys[] = {
 	{ MODKEY,			XK_p,	   cyclelayout,    {.i = +1} },
 	{ MODKEY,			XK_Right,  focusstack,	   {.i = +1} },
 	{ MODKEY,			XK_Left,   focusstack,     {.i = -1} },
+	{ MODKEY|ShiftMask,		XK_Right,  movestack,      {.i = +1} },
+	{ MODKEY|ShiftMask,		XK_Left,   movestack,	   {.i = -1} },
 	TAGKEYS(                        XK_1,                      0)
 	TAGKEYS(                        XK_2,                      1)
 	TAGKEYS(                        XK_3,                      2)
