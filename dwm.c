@@ -888,9 +888,17 @@ drawbar(Monitor *m)
 	}
 	x = 0;
 	for (i = 0; i < LENGTH(tags); i++) {
+		int isSelected = m->tagset[m->seltags] & 1 << i;
+		
 		w = TEXTW(tags[i]);
-		drw_setscheme(drw, scheme[m->tagset[m->seltags] & 1 << i ? SchemeSel : SchemeNorm]);
+		//drw_setscheme(drw, scheme[m->tagset[m->seltags] & 1 << i ? SchemeSel : SchemeNorm]);
+		drw_setscheme(drw, scheme[isSelected ? SchemeSel : SchemeNorm]);
 		drw_text(drw, x, 0, w, bh, lrpad / 2, tags[i], urg & 1 << i);
+
+		if (isSelected) {
+			drw_setscheme(drw, scheme[SchemeSel]);
+			drw_rect(drw, x, 0, w, 2, 1, 0);
+		}
 		if (occ & 1 << i)
 			drw_rect(drw, x + boxs, boxs, boxw, boxw,
 				m == selmon && selmon->sel && selmon->sel->tags & 1 << i,
@@ -899,7 +907,7 @@ drawbar(Monitor *m)
 	}
 	w = TEXTW(m->ltsymbol);
 	drw_setscheme(drw, scheme[SchemeNorm]);
-	x = drw_text(drw, x, 0, w, bh, lrpad / 2, m->ltsymbol, 0);
+	x = drw_text(drw, x, 0, w, bh, lrpad / 2, m->ltsymbol, 0);	
 
 	if ((w = m->ww - tw - stw - x) > bh) {
 		if (m->sel) {
@@ -913,6 +921,14 @@ drawbar(Monitor *m)
 		}
 	}
 	drw_map(drw, m->barwin, 0, 0, m->ww - stw, bh);
+
+
+	/* center text */
+//	char center_text[64];
+//	int center_w = TEXTW(center_text);
+//	int center_x = m->wx + (m->ww / 2) - (center_w / 2);
+//	drw_setscheme(drw, scheme[SchemeNorm]);
+//	drw_text(drw, center_x, 0, center_w, bh, lrpad / 2, center_text, 0);
 }
 
 void

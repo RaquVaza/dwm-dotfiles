@@ -1,7 +1,7 @@
 #!/bin/sh
 while true; do
-	DATETIME=$(LC_ALL=C date "+%b %d %H:%M")
-
-	xsetroot -name $DATETIME
+	DATE=$(date "+%b %d %H:%M")
+	WEATHER=$(curl -s "wttr.in/Chelyabinsk?format=%c%t" 2>/dev/null || echo "N/A")
+	xsetroot -name " $DATE $WEATHER "
 	sleep 30
 done

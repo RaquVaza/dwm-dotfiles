@@ -16,15 +16,16 @@ static const int systraypinning     = 0;
 static const int systraypinningfailfirst = 1;
 static const char *fonts[]          = { "Monocraft:size=10" };
 static const char dmenufont[]       = "monospace:size=10";
-static const char col_gray1[]       = "#222222";
-static const char col_gray2[]       = "#444444";
+static const char col_gray1[]       = "#1a1a1a";  //"#222222";
+static const char col_gray2[]       = "#3a3a3a";  //"#444444";
 static const char col_gray3[]       = "#bbbbbb";
-static const char col_gray4[]       = "#eeeeee";
-static const char col_cyan[]        = "#005577";
+static const char col_gray4[]       = "#ffffff"; //"#eeeeee";
+static const char col_cyan[]        = "#2d2d2d";  //"#005577";
+static const char col_cyan2[]       = "#909090";
 static const char *colors[][3]      = {
 	/*               fg         bg         border   */
 	[SchemeNorm] = { col_gray3, col_gray1, col_gray2 },
-	[SchemeSel]  = { col_gray4, col_cyan,  col_cyan  },
+	[SchemeSel]  = { col_gray4, col_cyan,  col_cyan2  },
 };
 
 const unsigned int gappx = 10;
@@ -51,10 +52,10 @@ static const int refreshrate = 120;  /* refresh rate (per second) for client mov
 
 static const Layout layouts[] = {
 	/* symbol     arrange function */
-	{ "(@)",      dwindle },    /* first entry is default */
+	{ "[]=",      tile },    /* first entry is default */
 	{ "><>",      NULL },    /* no layout function means floating behavior */
 	{ "[M]",      monocle },
-	{ "[]=",      tile },
+	{ "(@)",      dwindle },
 };
 
 /* key definitions */
@@ -75,11 +76,11 @@ static const char *term[]  = { "alacritty", NULL };
 static const char *web[] = { "brave", NULL };
 static const char *filemanager[] = { "thunar", NULL };
 static const char *rofi[] = { "rofi", "-show", "drun", NULL };
-static const char *kbd[] = { "sh", "-c", "xkb-switch -n", NULL };
+static const char *kbd[] = { "sh", "-c", "xkb-switch -n && kill -45 $(pgrep -f dwmblocks)", NULL };
 static const char *scrsh[] = { "sh", "-c", "scrot ~/Pictures/Screenshots/%b%d-%H-%m-%S.png --select --freeze", NULL };
 
-static const char *volup[] = { "sh", "-c", "pactl set-sink-volume @DEFAULT_SINK@ +2%", NULL };
-static const char *voldown[] = { "sh", "-c", "pactl set-sink-volume @DEFAULT_SINK@ -2%", NULL };
+static const char *volup[] = { "sh", "-c", "pactl set-sink-volume @DEFAULT_SINK@ +2% && kill -44 $(pgrep -f dwmblocks)", NULL };
+static const char *voldown[] = { "sh", "-c", "pactl set-sink-volume @DEFAULT_SINK@ -2% && kill -44 $(pgrep -f dwmblocks)", NULL };
 
 static const Key keys[] = {
 	/* modifier                     key        function        argument */
@@ -90,16 +91,22 @@ static const Key keys[] = {
 	{ MODKEY,			XK_e,	   spawn,	   {.v = filemanager} },
 	{ MODKEY|ShiftMask,		XK_s,	   spawn,	   {.v = scrsh} },
 	{ MODKEY,			XK_k,	   spawn,          {.v = kbd} },
+	{ MODKEY,			XK_r,      spawn,	   {.v = dmenucmd} },
 	{ MODKEY|ShiftMask,             XK_Return, zoom,           {0} },
 	{ MODKEY|ShiftMask,             XK_Tab,    view,           {0} },
 	{ MODKEY,	                XK_q,      killclient,     {0} },
 	{ MODKEY,             		XK_d,	   togglefloating, {0} },
 	{ MODKEY,			XK_f,	   togglefullscr,  {0} },
 	{ MODKEY,			XK_p,	   cyclelayout,    {.i = +1} },
+
 	{ MODKEY,			XK_Right,  focusstack,	   {.i = +1} },
 	{ MODKEY,			XK_Left,   focusstack,     {.i = -1} },
+	{ MODKEY|ControlMask,		XK_Right,  focusmon,       {.i = +1} },
+	{ MODKEY|ControlMask,		XK_Left,   focusmon,	   {.i = -1} },
 	{ MODKEY|ShiftMask,		XK_Right,  movestack,      {.i = +1} },
 	{ MODKEY|ShiftMask,		XK_Left,   movestack,	   {.i = -1} },
+	{ MODKEY|ControlMask|ShiftMask, XK_Right,  tagmon,         {.i = +1} },
+	{ MODKEY|ControlMask|ShiftMask, XK_Left,   tagmon,         {.i = -1} },
 	TAGKEYS(                        XK_1,                      0)
 	TAGKEYS(                        XK_2,                      1)
 	TAGKEYS(                        XK_3,                      2)
