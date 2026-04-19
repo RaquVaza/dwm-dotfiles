@@ -31,6 +31,8 @@ static const char *colors[][3]      = {
 const unsigned int gappx = 10;
 const unsigned int gappi = 10;
 
+//static const int refreshrate = 120;
+
 /* tagging */
 static const char *tags[] = { "1", "2", "3", "4", "5", "6", "7", "8", "9" };
 

@@ -41,6 +41,7 @@
 #include <X11/extensions/Xinerama.h>
 #endif /* XINERAMA */
 #include <X11/Xft/Xft.h>
+#include <math.h>
 
 #include "drw.h"
 #include "util.h"
@@ -1216,11 +1217,15 @@ keypress(XEvent *e)
 			keys[i].func(&(keys[i].arg));
 }
 
+static void slideout(Client *c);
+
 void
 killclient(const Arg *arg)
 {
 	if (!selmon->sel)
 		return;
+
+	slideout(selmon->sel);
 
 	if (!sendevent(selmon->sel->win, wmatom[WMDelete], NoEventMask, wmatom[WMDelete], CurrentTime, 0 , 0, 0)) {
 		XGrabServer(dpy);
@@ -1231,6 +1236,56 @@ killclient(const Arg *arg)
 		XSetErrorHandler(xerror);
 		XUngrabServer(dpy);
 	}
+}
+
+static void
+slidein(Client *c)
+{
+    int steps = 30; // more steps = smoother
+    int screenh = DisplayHeight(dpy, DefaultScreen(dpy));
+    int starty = screenh;
+    int targety = c->y;
+    float dy;
+
+    // ease-out curve using cosine interpolation
+    XMoveWindow(dpy, c->win, c->x, starty);
+    XMapWindow(dpy, c->win);
+    XRaiseWindow(dpy, c->win);
+
+    for (int i = 0; i <= steps; i++) {
+        float t = (float)i / steps; // progress 0→1
+        // Ease-out with cosine (starts fast, slows at end)
+        float ease = (1 - cosf(t * M_PI)) / 2;
+        dy = (targety - starty) * ease;
+        int cur_y = starty + dy;
+        XMoveWindow(dpy, c->win, c->x, cur_y);
+        XSync(dpy, False);
+        usleep(1000 * 4); // smaller = faster animation
+    }
+
+    XMoveWindow(dpy, c->win, c->x, targety);
+}
+
+static void
+slideout(Client *c)
+{
+    if (!c)
+        return;
+
+    int sh = c->mon->mh; 
+    int y = c->y;
+
+    int target = sh + c->h + 50;
+
+    while (y < target) {
+        XMoveWindow(dpy, c->win, c->x, y);
+        y += 60;                     // step size
+        XSync(dpy, False);
+        usleep(5000);               // delay
+    }
+
+    XUnmapWindow(dpy, c->win);
+    XDestroyWindow(dpy, c->win);
 }
 
 void
@@ -1289,7 +1344,8 @@ manage(Window w, XWindowAttributes *wa)
 		unfocus(selmon->sel, 0);
 	c->mon->sel = c;
 	arrange(c->mon);
-	XMapWindow(dpy, c->win);
+	//XMapWindow(dpy, c->win);
+	slidein(c);
 	focus(NULL);
 }
 
@@ -1529,16 +1585,47 @@ resizebarwin(Monitor *m) {
 void
 resizeclient(Client *c, int x, int y, int w, int h)
 {
-	XWindowChanges wc;
+    XWindowChanges wc;
+    int steps = 30;
+    int startx = c->x, starty = c->y, startw = c->w, starth = c->h;
+    float dx = x - startx;
+    float dy = y - starty;
+    float dw = w - startw;
+    float dh = h - starth;
 
-	c->oldx = c->x; c->x = wc.x = x;
-	c->oldy = c->y; c->y = wc.y = y;
-	c->oldw = c->w; c->w = wc.width = w;
-	c->oldh = c->h; c->h = wc.height = h;
-	wc.border_width = c->bw;
-	XConfigureWindow(dpy, c->win, CWX|CWY|CWWidth|CWHeight|CWBorderWidth, &wc);
-	configure(c);
-	XSync(dpy, False);
+    /* Skip animation if user is dragging or it's a tiny change */
+    if (!c->isfloating && (abs(dx) > 2 || abs(dy) > 2 || abs(dw) > 2 || abs(dh) > 2)) {
+        for (int i = 1; i <= steps; i++) {
+            float t = (float)i / steps;
+            float ease = (1 - cosf(t * M_PI)) / 2;
+
+            wc.x = startx + dx * ease;
+            wc.y = starty + dy * ease;
+            wc.width = startw + dw * ease;
+            wc.height = starth + dh * ease;
+            wc.border_width = c->bw;
+
+            XConfigureWindow(dpy, c->win,
+                             CWX | CWY | CWWidth | CWHeight | CWBorderWidth, &wc);
+            XSync(dpy, False);
+            usleep(1000 * 2);
+        }
+    }
+
+    /* Always end exactly where we should */
+    c->oldx = c->x = x;
+    c->oldy = c->y = y;
+    c->oldw = c->w = w;
+    c->oldh = c->h = h;
+    wc.x = x;
+    wc.y = y;
+    wc.width = w;
+    wc.height = h;
+    wc.border_width = c->bw;
+    XConfigureWindow(dpy, c->win,
+                     CWX | CWY | CWWidth | CWHeight | CWBorderWidth, &wc);
+    configure(c);
+    XSync(dpy, False);
 }
 
 void
@@ -2590,13 +2677,71 @@ updatewmhints(Client *c)
 }
 
 void
+slide_workspace(Monitor *m, int direction)
+{
+    int steps = 20;
+    int screenw = DisplayWidth(dpy, DefaultScreen(dpy));
+    Client *c;
+
+    for (int i = 0; i <= steps; i++) {
+        float t = (float)i / steps;
+        float ease = (1 - cosf(t * M_PI)) / 2;
+        float dx = screenw * ease * direction;
+
+        for (c = m->clients; c; c = c->next)
+            if (ISVISIBLE(c))
+                XMoveWindow(dpy, c->win, c->x + dx, c->y);
+
+        XSync(dpy, False);
+        usleep(4000);
+    }
+
+    for (c = m->clients; c; c = c->next)
+        if (ISVISIBLE(c))
+            XMoveWindow(dpy, c->win, c->x + screenw * direction, c->y);
+    XSync(dpy, False);
+}
+
+void
+slide_workspace_in(Monitor *m, int direction)
+{
+    int steps = 20;
+    int screenw = DisplayWidth(dpy, DefaultScreen(dpy));
+    Client *c;
+
+    for (int i = 0; i <= steps; i++) {
+        float t = (float)i / steps;
+        float ease = (1 - cosf(t * M_PI)) / 2;
+        float dx = screenw * (1 - ease) * direction;
+
+        for (c = m->clients; c; c = c->next)
+            if (ISVISIBLE(c))
+                XMoveWindow(dpy, c->win, c->x + dx, c->y);
+
+        XSync(dpy, False);
+        usleep(4000);
+    }
+
+    // ensure final position is exactly aligned
+    for (c = m->clients; c; c = c->next)
+        if (ISVISIBLE(c))
+            XMoveWindow(dpy, c->win, c->x, c->y);
+    XSync(dpy, False);
+}
+
+void
 view(const Arg *arg)
 {
 	int i;
 	unsigned int tmptag;
+	unsigned int newtag = arg->ui & TAGMASK;
 
 	if ((arg->ui & TAGMASK) == selmon->tagset[selmon->seltags])
 		return;
+	
+	int dir = (newtag == selmon->tagset[selmon->seltags]) ? -1 : 1;
+	slide_workspace(selmon, dir);
+
 	selmon->seltags ^= 1; /* toggle sel tagset */
 	if (arg->ui & TAGMASK) {
 		selmon->tagset[selmon->seltags] = arg->ui & TAGMASK;
@@ -2623,8 +2768,11 @@ view(const Arg *arg)
 	if (selmon->showbar != selmon->pertag->showbars[selmon->pertag->curtag])
 		togglebar(NULL);
 
-	focus(NULL);
+	if (selmon->showbar != selmon->pertag->showbars[selmon->pertag->curtag])
+		togglebar(NULL);
 	arrange(selmon);
+	slide_workspace_in(selmon, -dir);
+	focus(NULL);
 }
 
 void
