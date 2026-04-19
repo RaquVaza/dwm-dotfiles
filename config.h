@@ -101,8 +101,8 @@ static const Key keys[] = {
 	{ MODKEY,			XK_f,	   togglefullscr,  {0} },
 	{ MODKEY,			XK_p,	   cyclelayout,    {.i = +1} },
 
-	{ MODKEY,			XK_Right,  focusstack,	   {.i = +1} },
-	{ MODKEY,			XK_Left,   focusstack,     {.i = -1} },
+	{ MODKEY,			XK_Right,  focusstackhid,  {.i = +1} },
+	{ MODKEY,			XK_Left,   focusstackhid,  {.i = -1} },
 	{ MODKEY|ControlMask,		XK_Right,  focusmon,       {.i = +1} },
 	{ MODKEY|ControlMask,		XK_Left,   focusmon,	   {.i = -1} },
 	{ MODKEY|ShiftMask,		XK_Right,  movestack,      {.i = +1} },
