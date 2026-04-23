@@ -1339,7 +1339,7 @@ static void
 slidein(Client *c)
 {
     struct timespec start, now, sleep_ts;
-    long duration_ms = 220;  /* общее время анимации в мс */
+    long duration_ms = 180;  /* общее время анимации в мс */
     long frame_ms    = 8;    /* ~120fps; поставь 16 для 60fps */
 
     int screenh = DisplayHeight(dpy, DefaultScreen(dpy));
@@ -1382,7 +1382,7 @@ slideout(Client *c)
     if (!c) return;
 
     struct timespec start, now, sleep_ts;
-    long duration_ms = 180;
+    long duration_ms = 140;
     long frame_ms    = 8;
 
     int starty  = c->y;

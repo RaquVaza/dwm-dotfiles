@@ -15,7 +15,7 @@ static const int systrayspacing     = 2;
 static const int systraypinning     = 0;
 static const int systraypinningfailfirst = 1;
 static const char *fonts[]          = { "Monocraft:size=10" };
-static const char dmenufont[]       = "monospace:size=10";
+static const char dmenufont[]       = "Monocraft:size=10";
 static const char col_gray1[]       = "#1a1a1a";  //"#222222";
 static const char col_gray2[]       = "#3a3a3a";  //"#444444";
 static const char col_gray3[]       = "#bbbbbb";
@@ -75,8 +75,8 @@ static const Layout layouts[] = {
 static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
 static const char *dmenucmd[] = { "dmenu_run", "-m", dmenumon, "-fn", dmenufont, "-nb", col_gray1, "-nf", col_gray3, "-sb", col_cyan, "-sf", col_gray4, NULL };
 static const char *term[]  = { "alacritty", NULL };
-static const char *web[] = { "brave", NULL };
-static const char *filemanager[] = { "thunar", NULL };
+static const char *web[] = { "firefox", NULL };
+static const char *filemanager[] = { "nautilus", NULL };
 static const char *rofi[] = { "rofi", "-show", "drun", NULL };
 static const char *kbd[] = { "sh", "-c", "xkb-switch -n && kill -45 $(pgrep -f dwmblocks)", NULL };
 static const char *scrsh[] = { "sh", "-c", "scrot ~/Pictures/Screenshots/%b%d-%H-%m-%S.png --select --freeze", NULL };
